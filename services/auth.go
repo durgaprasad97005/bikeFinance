@@ -124,7 +124,7 @@ func (s *AuthService) Login(ctx context.Context, req request.LoginUser) (string,
 		"exp": time.Now().Add(15 * time.Minute),
 	})
 
-	accessToken, err := token.SignedString(s.cfg.JwtSecret)
+	accessToken, err := token.SignedString([]byte(s.cfg.JwtSecret))
 	if err != nil {
 		return "", err
 	}
