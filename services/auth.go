@@ -1,11 +1,9 @@
 package services
 
 import (
-	"context"
 	"errors"
 	"time"
 
-	"github.com/durgaprasad97005/bikeFinance/config"
 	"github.com/durgaprasad97005/bikeFinance/dto/request"
 	"github.com/durgaprasad97005/bikeFinance/dto/response"
 	"github.com/durgaprasad97005/bikeFinance/models"
@@ -19,25 +17,25 @@ import (
 // struct for AuthService
 type AuthService struct {
 	userRepository *repository.UserRepository
-	cfg *config.Config
+	jwtSecret      string
 }
 
 // Constructor like func to initialize AuthService
-func NewAuthService(repo *repository.UserRepository, config *config.Config) *AuthService {
+func NewAuthService(repo *repository.UserRepository, secret string) *AuthService {
 	return &AuthService{
 		userRepository: repo,
-		cfg: config,
+		jwtSecret:      secret,
 	}
 }
 
 // Register service
-func (s *AuthService) Register(ctx context.Context, req request.RegisterUser) (*response.User, error) {
+func (s *AuthService) Register(req request.RegisterUser) (*response.User, error) {
 	// Validate the req
 	validate := validator.New()
 	if err := validate.Struct(req); err != nil {
 		return nil, err
 	}
-	
+
 	// Create models.User model from the req
 	user := models.User{
 		FirstName: req.FirstName,
@@ -55,7 +53,7 @@ func (s *AuthService) Register(ctx context.Context, req request.RegisterUser) (*
 	}
 
 	// Check whether given email already exists or not
-	existingUser, err := s.userRepository.Get(ctx, bson.M{"email": req.Email})
+	existingUser, err := s.userRepository.Get(bson.M{"email": req.Email})
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +69,7 @@ func (s *AuthService) Register(ctx context.Context, req request.RegisterUser) (*
 	user.PasswordHash = string(passwordHash)
 
 	// Calling repository to create new user
-	if err := s.userRepository.Create(ctx, &user); err != nil {
+	if err := s.userRepository.Create(&user); err != nil {
 		return nil, err
 	}
 
@@ -96,7 +94,7 @@ func (s *AuthService) Register(ctx context.Context, req request.RegisterUser) (*
 }
 
 // Login service
-func (s *AuthService) Login(ctx context.Context, req request.LoginUser) (string, error) {
+func (s *AuthService) Login(req request.LoginUser) (string, error) {
 	// Validate the req
 	validate := validator.New()
 	if err := validate.Struct(req); err != nil {
@@ -104,7 +102,7 @@ func (s *AuthService) Login(ctx context.Context, req request.LoginUser) (string,
 	}
 
 	// Check whether user exists
-	user, err := s.userRepository.Get(ctx, bson.M{"email": req.Email})
+	user, err := s.userRepository.Get(bson.M{"email": req.Email})
 	if err != nil {
 		return "", err
 	}
@@ -120,14 +118,51 @@ func (s *AuthService) Login(ctx context.Context, req request.LoginUser) (string,
 
 	// Create jwt access token
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"sub": user.ID.Hex(), 
-		"exp": time.Now().Add(15 * time.Minute),
+		"sub": user.ID.Hex(),
+		"exp": time.Now().Add(15 * time.Minute).Unix(),
 	})
 
-	accessToken, err := token.SignedString([]byte(s.cfg.JwtSecret))
+	accessToken, err := token.SignedString([]byte(s.jwtSecret))
 	if err != nil {
 		return "", err
 	}
 
+	// Return accessToken
 	return accessToken, nil
+}
+
+// Profile service
+func (s *AuthService) Profile(id string) (*response.User, error) {
+	// Converting id to userId object
+	userId, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, err
+	}
+
+	// Get user
+	user, err := s.userRepository.Get(bson.M{"_id": userId})
+	if err != nil {
+		return nil, err
+	}
+	if user == nil {
+		return nil, nil
+	}
+
+	responseUser := &response.User{
+		ID:        user.ID,
+		FirstName: user.FirstName,
+		LastName:  user.LastName,
+		Email:     user.Email,
+		Phone:     user.Phone,
+		Role:      user.Role,
+		Branch:    user.Branch,
+		AuditFields: models.AuditFields{
+			CreatedBy:      user.CreatedBy,
+			LastModifiedBy: user.LastModifiedBy,
+			CreatedAt:      user.CreatedAt,
+			LastModifiedAt: user.LastModifiedAt,
+		},
+	}
+
+	return responseUser, nil
 }

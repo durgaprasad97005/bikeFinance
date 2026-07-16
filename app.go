@@ -22,7 +22,7 @@ func SetupApp(cfg *config.Config) *fiber.App {
 	database.ConnectDatabase(cfg)
 
 	// Initialize Routes
-	routes.SetupRoutes(app, cfg)
+	routes.SetupRoutes(app, cfg.JwtSecret)
 
 	return app
 }

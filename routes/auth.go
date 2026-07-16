@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"github.com/durgaprasad97005/bikeFinance/config"
 	"github.com/durgaprasad97005/bikeFinance/database"
 	"github.com/durgaprasad97005/bikeFinance/handlers"
 	"github.com/durgaprasad97005/bikeFinance/repository"
@@ -10,10 +9,10 @@ import (
 )
 
 // Function to create authentication routes
-func AuthRoutes(app *fiber.App, cfg *config.Config) {
+func AuthRoutes(app *fiber.App, authMiddleware fiber.Handler, jwtSecret string) {
 	// Initialize configured repository, services, and handlers
 	userRepo := repository.NewUserRepository(database.DB)
-	authService := services.NewAuthService(userRepo, cfg)
+	authService := services.NewAuthService(userRepo, jwtSecret)
 	authHandler := handlers.NewAuthHandler(authService)
 
 	// Grouping of routes
@@ -22,5 +21,6 @@ func AuthRoutes(app *fiber.App, cfg *config.Config) {
 	// Auth routes
 	auth.Post("/register", authHandler.Register)
 	auth.Post("/login", authHandler.Login)
+	auth.Get("/profile", authMiddleware, authHandler.Profile)
 	// Pending - Need to add two more routes - Logout, GetProfile
 }

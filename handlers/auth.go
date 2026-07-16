@@ -1,9 +1,6 @@
 package handlers
 
 import (
-	"context"
-	"time"
-
 	"github.com/durgaprasad97005/bikeFinance/dto/request"
 	"github.com/durgaprasad97005/bikeFinance/services"
 	"github.com/durgaprasad97005/bikeFinance/utils"
@@ -30,11 +27,7 @@ func (h *AuthHandler) Register(c fiber.Ctx) error {
 		return utils.Error(c, fiber.StatusBadRequest, "Unable to parse request body", err.Error())
 	}
 
-	// Create context for calling service
-	ctx, cancel := context.WithTimeout(context.Background(), 10 * time.Second)
-	defer cancel()
-
-	res, err := h.authService.Register(ctx, req) // res is response.User type
+	res, err := h.authService.Register(req) // res is response.User type
 	if err != nil {
 		return utils.Error(c, fiber.StatusBadRequest, "User creation failed with an error", err.Error())
 	}
@@ -51,20 +44,16 @@ func (h *AuthHandler) Login(c fiber.Ctx) error {
 		return utils.Error(c, fiber.StatusBadRequest, "Unable to parse request body", err.Error())
 	}
 
-	// Create context for calling service
-	ctx, cancel := context.WithTimeout(context.Background(), 10 * time.Second)
-	defer cancel()
-
-	accessToken, err := h.authService.Login(ctx, req)
+	accessToken, err := h.authService.Login(req)
 	if err != nil {
 		return utils.Error(c, fiber.StatusUnauthorized, "Unauthorized", err.Error())
 	}
 
 	// Success response
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"success": true, 
-		"message": "Login successful", 
-		"accessToken": accessToken, 
+		"success":     true,
+		"message":     "Login successful",
+		"accessToken": accessToken,
 	})
 }
 
@@ -76,6 +65,18 @@ func (h *AuthHandler) Logout(c fiber.Ctx) error {
 
 // Get profile
 func (h *AuthHandler) Profile(c fiber.Ctx) error {
-	// Pending - Need to implement this function
-	return nil
+	// Get the id from locals
+	id := c.Locals("userId").(string)
+
+	// Get user
+	res, err := h.authService.Profile(id)
+	if err != nil {
+		return utils.Error(c, fiber.StatusInternalServerError, "Error finding user", err.Error())
+	}
+	if res == nil {
+		return utils.Error(c, fiber.StatusNotFound, "User not found", "Invalid Id")
+	}
+
+	// Success response
+	return utils.Success(c, fiber.StatusOK, "Successfully retrieved user profile", res)
 }

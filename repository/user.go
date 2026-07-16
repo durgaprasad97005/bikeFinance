@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/durgaprasad97005/bikeFinance/database"
 	"github.com/durgaprasad97005/bikeFinance/models"
@@ -23,13 +24,17 @@ func NewUserRepository(db *mongo.Database) *UserRepository {
 }
 
 // Get all Users
-func (r *UserRepository) Find(ctx context.Context, filter bson.M) ([]models.User, error) {
+func (r *UserRepository) Find(filter bson.M) ([]models.User, error) {
 	// Pending - implementation
 	return make([]models.User, 0), nil 
 }
 
 // Get a User 
-func (r *UserRepository) Get(ctx context.Context, filter bson.M) (*models.User, error) {
+func (r *UserRepository) Get(filter bson.M) (*models.User, error) {
+	// Create context for calling service
+	ctx, cancel := context.WithTimeout(context.Background(), 10 * time.Second)
+	defer cancel()
+	
 	// Find in the collection
 	var user models.User
 	err := r.collection.FindOne(ctx, filter).Decode(&user)
@@ -49,7 +54,11 @@ func (r *UserRepository) Get(ctx context.Context, filter bson.M) (*models.User, 
 }
 
 // Create a User and populate ID field in user instance
-func (r *UserRepository) Create(ctx context.Context, user *models.User) error {
+func (r *UserRepository) Create(user *models.User) error {
+	// Create context for calling service
+	ctx, cancel := context.WithTimeout(context.Background(), 10 * time.Second)
+	defer cancel()
+
 	// Insert into database
 	result, err := r.collection.InsertOne(ctx, user)
 	if err != nil {
@@ -67,13 +76,13 @@ func (r *UserRepository) Create(ctx context.Context, user *models.User) error {
 }
 
 // Update a User
-func (r *UserRepository) Update(ctx context.Context, filter bson.M, user *models.User) error {
+func (r *UserRepository) Update(filter bson.M, user *models.User) error {
 	// Pending implementation
 	return nil
 }
 
 // Delete a User
-func (r *UserRepository) Delete(ctx context.Context, filter bson.M) error {
+func (r *UserRepository) Delete(filter bson.M) error {
 	// Pending implementation
 	return nil
 }
