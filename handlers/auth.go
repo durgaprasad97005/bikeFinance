@@ -4,6 +4,7 @@ import (
 	"github.com/durgaprasad97005/bikeFinance/dto/request"
 	"github.com/durgaprasad97005/bikeFinance/services"
 	"github.com/durgaprasad97005/bikeFinance/utils"
+	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
 )
 
@@ -29,7 +30,17 @@ func (h *AuthHandler) Register(c fiber.Ctx) error {
 
 	res, err := h.authService.Register(req) // res is response.User type
 	if err != nil {
-		return utils.Error(c, fiber.StatusBadRequest, "User creation failed with an error", err.Error())
+		if errs, ok := err.(validator.ValidationErrors); ok {
+			return utils.Error(c, fiber.StatusBadRequest, "Validation failed", utils.Validate(errs))
+		}
+		if err.Error() == "Invalid role" || err.Error() == "Invalid branch" {
+			return utils.Error(c, fiber.StatusBadRequest, "Validation failed", err.Error())
+		}
+		if err.Error() == "Duplicate user" {
+			return utils.Error(c, fiber.StatusBadRequest, "There exists another user with given email", err.Error())
+		}
+		
+		return utils.Error(c, fiber.StatusInternalServerError, "User creation failed with an error", err.Error())
 	}
 
 	// Success response
@@ -46,6 +57,10 @@ func (h *AuthHandler) Login(c fiber.Ctx) error {
 
 	accessToken, err := h.authService.Login(req)
 	if err != nil {
+		if errs, ok := err.(validator.ValidationErrors); ok {
+			return utils.Error(c, fiber.StatusBadRequest, "Validation failed", utils.Validate(errs))
+		}
+
 		return utils.Error(c, fiber.StatusUnauthorized, "Unauthorized", err.Error())
 	}
 

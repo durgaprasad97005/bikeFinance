@@ -4,6 +4,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/durgaprasad97005/bikeFinance/constants"
 	"github.com/durgaprasad97005/bikeFinance/dto/request"
 	"github.com/durgaprasad97005/bikeFinance/dto/response"
 	"github.com/durgaprasad97005/bikeFinance/models"
@@ -35,6 +36,12 @@ func (s *AuthService) Register(req request.RegisterUser) (*response.User, error)
 	if err := validate.Struct(req); err != nil {
 		return nil, err
 	}
+	if req.Role < 1 || req.Role >= constants.RoleCount {
+		return nil, errors.New("Invalid role")
+	}
+	if req.Branch < 1 || req.Branch >= constants.BranchCount {
+		return nil, errors.New("Invalid branch")
+	}
 
 	// Create models.User model from the req
 	user := models.User{
@@ -58,7 +65,7 @@ func (s *AuthService) Register(req request.RegisterUser) (*response.User, error)
 		return nil, err
 	}
 	if existingUser != nil {
-		return nil, errors.New("There exists another user with given email")
+		return nil, errors.New("Duplicate user")
 	}
 
 	// Password hashing
@@ -107,7 +114,7 @@ func (s *AuthService) Login(req request.LoginUser) (string, error) {
 		return "", err
 	}
 	if user == nil {
-		return "", errors.New("There exists no user with given email")
+		return "", errors.New("User not found")
 	}
 
 	// Compare Password and PasswordHash

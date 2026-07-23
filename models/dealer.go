@@ -5,21 +5,22 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-// Dealer struct
+// Dealer model struct
 type Dealer struct {
-	ID            bson.ObjectID    `bson:"_id,omitempty"`
-	DealerCode    string           `bson:"dealerCode"`
-	BusinessName  string           `bson:"businessName"`
-	OwnerName     string           `bson:"ownerName"`
-	Phone         string           `bson:"phone"`
-	Email         string           `bson:"email"`
-	GSTNumber     string           `bson:"gstNumber"`
-	PANNumber     string           `bson:"panNumber"`
-	AadhaarNumber string           `bson:"aadhaarNumber"`
-	BranchID      string           `bson:"branchId"`
-	Status        constants.Status `bson:"status"` 
-	IsActive      bool             `bson:"isActive"`
-	Address       AddressFields
-	BankDetails   BankFields
+	// Have to add the validate struct tag
+	ID            bson.ObjectID    `json:"_id,omitempty" bson:"_id,omitempty"`
+	DealerCode    string           `json:"dealerCode" bson:"dealerCode"` // Auto generated field
+	BusinessName  string           `json:"businessName" bson:"businessName"` 
+	OwnerName     string           `json:"ownerName" bson:"ownerName"`
+	Phone         string           `json:"phone" bson:"phone"`
+	Email         string           `json:"email" bson:"email"`
+	GSTNumber     string           `json:"gstNumber" bson:"gstNumber"`
+	PANNumber     string           `json:"panNumber" bson:"panNumber"`
+	AadhaarNumber string           `json:"aadhaarNumber" bson:"aadhaarNumber"`
+	BranchID      string           `json:"branchId" bson:"branchId"`
+	Status        constants.Status `json:"status" bson:"status"`
+	IsActive      bool             `json:"isActive" bson:"isActive"`
+	Address       AddressFields    `json:"address" bson:"address"`
+	BankDetails   BankFields       `json:"bankDetails" bson:"bankDetails"`
 	AuditFields   `bson:",inline"`
 }

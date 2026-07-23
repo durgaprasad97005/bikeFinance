@@ -1,5 +1,10 @@
 package constants
 
+// Enum for roles
+type UserRole int
+
 const (
-	RoleAdmin = "admin"
+	RoleAdmin UserRole = iota + 1
+	
+	RoleCount
 )

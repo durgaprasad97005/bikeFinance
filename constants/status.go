@@ -1,5 +1,6 @@
 package constants
 
+// Enum for status
 type Status string
 
 const (
