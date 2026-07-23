@@ -1,11 +1,13 @@
 package constants
 
 // Enum for status
-type Status string
+type Status int
 
 const (
-	StatusPending  Status = "pending"
-	StatusApproved Status = "approved"
-	StatusRejected Status = "rejected"
-	StatusInActive Status = "inactive"
+	StatusPending  Status = iota + 1
+	StatusApproved 
+	StatusRejected 
+	StatusInActive 
+
+	StatusCount
 )

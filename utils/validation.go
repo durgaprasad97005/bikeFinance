@@ -18,6 +18,8 @@ func Validate(errs validator.ValidationErrors) any {
 			errMessages = append(errMessages, err.Field() + " field must be exactly " + err.Param() + " characters long")
 		case "min":
 			errMessages = append(errMessages, err.Field() + " field must be at least " + err.Param() + " characters long")
+		case "digits":
+			errMessages = append(errMessages, err.Field() + " field must only contain numbers")
 		}
 	}
 
